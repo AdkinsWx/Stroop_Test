@@ -1,0 +1,204 @@
+Stroop Test Sample Analysis by Matthew Adkins
+
+=================================================
+
+```{r echo= FALSE, message= FALSE, packages}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+```
+
+
+
+```{r echo=FALSE, Load_Data}
+stroop <- read.csv('stroopdata.csv')
+
+```
+
+> # Background
+
+> In a Stroop task, participants are presented with a list of words, with each word displayed in a color of ink. The participant's task is to say out loud the color of the ink in which the word is printed. The task has two conditions: a congruent words condition, and an incongruent words condition. In the congruent words condition, the words being displayed are color words whose names match the colors in which they are printed: for example <span style="color:red">RED</span>, <span style="color:blue">BLUE</span>. In the incongruent words condition, the words displayed are color words whose names do not match the colors in which they are printed: for example <span style="color:green">PURPLE</span>, <span style="color:purple">ORANGE</span>. In each case, we measure the time it takes to name the ink colors in equally-sized lists. Each participant will go through and record a time from each condition.
+
+
+
+
+
+> Below is a sample of the first six lines of the data. Each horizontal line represents an individual test subject and the time it took them to complete each test. Time units are in seconds.
+
+```{r echo=FALSE, message=FALSE,Data_Preview}
+head(stroop)
+
+```
+
+> From the first few lines displayed we can see that every test subject shown took longer to complete the Incongruent test when compared to the Congruent test. But let's explore and test this hypothesis further by answering a select list of questions.
+
+> ## 1. What is our independent variable? What os our dependent variable?
+
+> Our independent variable is the conidition of congruency. The word for the color can either match or not match the fill value of the word.
+Example: <span style="color:red">RED</span> versus <span style="color:blue">RED</span>
+
+> Our dependent variable is how long it takes an individual to complete each test.
+
+
+
+> ## 2. What is an appropriate set of hypotheses for this task? What kind of statistical test do you expect to perform? Justify your choices.
+
+> ### Null Hypothesis
+
+> The Null hypothesis states the average time to read a list of congruently colored words will be equal to the time it takes to read a list of incongruently colored words. Thus the Null hyothesis would infer that the independent variable would have no meanigful effect on the dependent variable.
+
+> ### Alternative Hypothesis
+
+> The Alternative hypothesis assumes that there is a meaningful between the time reading congruently colored words versus incongruently colored words.Thus the independent variable has a direct effect on the dependent variable.
+
+> ### Testing the Hypothesis
+
+> Given that the population size is unknown we will not be able to utilize z-test values. Instead we will employ t-test values to reject (or fail to reject) the null hypothesis.
+> Also, the measured difference in time can be either negative or positive. This gives us two directions to test for in our sample distribution. Thus, the appropiate test is a two-tailed test. This will allow us to reject (or fail to reject) the null hypothesis regardless of the direction of the time change.
+
+
+
+> # Descriptive Statistics
+
+
+> ## Measures of Central Tendecy
+
+``` {r echo=FALSE, Central_Tendency}
+
+summary(stroop)
+
+```
+
+> The mean reading time for congruent words is 14.05s versus 22.02s for incongruent words'
+
+> The median reading time for congruent words is 14.36s versus 21.02s for incongruent words
+
+
+> ## Measures of Variability
+
+```{r echo=FALSE, Variability}
+cong.sd <- round(sd(stroop$Incongruent), digit =6)
+incon.sd <- round(sd(stroop$Congruent), digits =6)
+
+print(paste0('Congruent Standard Deviation: ', cong.sd))
+
+print(paste0('Incongruent Standard Deviation: ', incon.sd))
+
+```
+
+> The standard deviation of congruent words is 3.56s versus incongruent words at 4.80s
+
+> ## Thoughts and Observations
+
+> Given these relatively simple measures we can see that congruent words first appear to take which could indicate the we have normal distributions. Both of these initial observations are going to explored further in the next sections.
+
+
+> # Plots and Visualizations
+
+
+```{r echo=FALSE, Histo}
+
+plot1 <- ggplot(stroop, aes(x=Congruent))+
+  geom_histogram(bins = 15)+
+  xlab('Test Completion Time (s)')+
+  ylab('Frequency of Occurance')+
+  ggtitle('Congruent Test')+
+  theme(plot.title = element_text(hjust =0.5))+
+  geom_vline(xintercept = mean(stroop$Congruent), color ='blue')+
+  geom_vline(xintercept = median(stroop$Congruent), color ='red')+
+  annotate("text", label="Mean", x= 13, y=4.75, color = 'blue')+
+  annotate("text", label="Median", x=15.75, y=4.75, color='red')
+
+plot2 <- ggplot(stroop, aes(x=Incongruent))+
+  geom_histogram(bins=15)+
+  xlab('Test Completion Time (s)')+
+  ylab('Frequency of Occurance')+
+  ggtitle('Incongruent Test')+
+  theme(plot.title = element_text(hjust = 0.5))+
+  geom_vline(xintercept = mean(stroop$Incongruent), color ='blue')+
+  geom_vline(xintercept = median(stroop$Incongruent), color ='red')+
+  annotate("text", label="Mean", x =24, y=6, color='blue')+
+  annotate("text", label="Median", x=19, y=6, color='red')
+
+grid.arrange(plot1, plot2, ncol=2)
+
+```
+
+
+> Reviewing the histograms above we can see that in both of tests we can see a normal distribution. Although the Incongruent Test does show two individuals who had such a high completion time that they became outliers in out data set. It could be reasoned that if we increased our sample size we may be able to normalize the outliers.
+
+
+```{r echo=FALSE, Density}
+ggplot(stroop, aes(x = Congruent, color='Congruent'))+
+  geom_density()+
+  geom_density(aes(x=stroop$Incongruent, color='Incongruent'))+
+  xlim(0,50)+
+  ylab('Frequency')+
+  xlab('Stroop Test Completion Time (s)')+
+  ggtitle('Stroop Test Density Plot')+
+  labs(color= '')+
+  theme(plot.title = element_text(hjust=0.5))
+
+```
+
+> Now we can observe the two tests in "smoother" plot to get a even better understanding of the shape. It good to keep in mind that these are density plots and the area under the curve equals 100% or 1.00. 
+
+> Again the Congruent test appears to be a normal distribution. However, the Incongruent test now appears to be bi-modal. So unlike how assumption from the histograms this could suggest that a larger sample size may give rise to a bi-modal distribution with two maximas.
+
+
+
+> # Statistical Tests
+
+
+> First we'll find the T-cricital value for a two-tailed test with 23 degrees of freedom and an alpha of 0.05. Note that using an alpha of 0.05 will result in a 95% confidence level.
+
+
+```{r echo=FALSE, Stats}
+#Known Variables
+dof <- (nrow(stroop) -1)
+alpha <- 0.05
+tail <- 2
+
+# T critical
+tcrit <- qt((0.05/2), 23)
+
+
+print(paste0('T-critical= +', tcrit))
+
+```
+
+> After running out function we find out that our T-critical score is +/- 2.069. This means that if we calculate a T-score above or below our critcal scores we can reject the null hypothsis. Conversely, if out T-score is inbetween or upper and lower T-critical scores we will fail to reject the null hypothesis. 
+
+
+
+```{r echo=FALSE, Tscore}
+
+# Calculate the t score
+
+t.test((stroop$Incongruent - stroop$Congruent))
+
+
+
+````
+
+> After running our function we get a T-score of 8.021 which is far above our T-critical value of 2.069. Also, we have a probablity associated with our T-score of 4.1e-8.
+
+
+> ### Rejecting the Null Hypothesis:
+
+> Given the T-score of 8.021 and the probability of 4.1e-8 we can reject the null hypothesis. This means that the difference between the Congruent and Incoungruent reading times are statistically significant. Thus, this helps prove the case of the Stroop Effect.
+
+
+> # Conclusions
+
+> Given that we found a statistically significant difference between the time to complete each test and that our t-score was above our upper critical value we can safely state that it takes more time to complete the Incongruent test than the Congruent test.
+
+> This matches our expectations when we first observed the leading six rows of the data set. I have also taken the Stroop Test myself and found that it took me more time for me to correctly read the Incongruent test.
+
+
+
+
+
+
+
